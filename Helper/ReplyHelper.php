@@ -9,15 +9,14 @@
  * @license     GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 
-namespace MauticPlugin\MauticTwillioFeedbackBundle\Helper;
+namespace MauticPlugin\MauticTwilioFeedbackBundle\Helper;
 
 use Mautic\LeadBundle\Entity\Lead;
 use Mautic\LeadBundle\Tracker\ContactTracker;
-use Mautic\SmsBundle\Callback\CallbackInterface;
-use Mautic\SmsBundle\Callback\ResponseInterface;
-use Mautic\SmsBundle\Event\ReplyEvent;
-use Mautic\SmsBundle\SmsEvents;
-use MauticPlugin\MauticTwillioFeedbackBundle\Exception\NumberNotFoundException;
+use MauticPlugin\MauticTwilioFeedbackBundle\Callback\TwilioCallback;
+use MauticPlugin\MauticTwilioFeedbackBundle\Event\ReplyEvent;
+use MauticPlugin\MauticTwilioFeedbackBundle\Exception\NumberNotFoundException;
+use MauticPlugin\MauticTwilioFeedbackBundle\TwilioFeedbackEvents;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -46,17 +45,24 @@ class ReplyHelper
     private $contactTracker;
 
     /**
+     * @var TwilioCallback
+     */
+    private $twilioCallback;
+
+    /**
      * ReplyHelper constructor.
      *
      * @param EventDispatcherInterface $eventDispatcher
      * @param LoggerInterface          $logger
      * @param ContactTracker           $contactTracker
+     * @param TwilioCallback           $twilioCallback
      */
-    public function __construct(EventDispatcherInterface $eventDispatcher, LoggerInterface $logger, ContactTracker $contactTracker)
+    public function __construct(EventDispatcherInterface $eventDispatcher, LoggerInterface $logger, ContactTracker $contactTracker, TwilioCallback $twilioCallback)
     {
         $this->eventDispatcher = $eventDispatcher;
         $this->logger          = $logger;
         $this->contactTracker  = $contactTracker;
+        $this->twilioCallback = $twilioCallback;
     }
 
     /**
@@ -79,16 +85,13 @@ class ReplyHelper
      */
     public function handleRequest(Request $request)
     {
-        // Set the default response
-        $response = $this->getDefaultResponse();
-
+        $response = new Response('ok');
         try {
-            $message  = $handler->getMessage($request);
-            $contacts = $handler->getContacts($request);
+            $message  = $this->twilioCallback->getMessage($request);
+            $contacts = $this->twilioCallback->getContacts($request);
 
             $this->logger->debug(sprintf('SMS REPLY: Processing message "%s"', $message));
             $this->logger->debug(sprintf('SMS REPLY: Found IDs %s', implode(',', $contacts->getKeys())));
-
             foreach ($contacts as $contact) {
                 // Set the contact for campaign decisions
                 $this->contactTracker->setSystemContact($contact);
@@ -108,7 +111,7 @@ class ReplyHelper
             $this->logger->debug(
                 sprintf(
                     '%s: %s was not found. The message sent was "%s"',
-                    $handler->getTransportName(),
+                    'Twilio',
                     $exception->getNumber(),
                     isset($message) ? $message : 'unknown'
                 )
@@ -128,30 +131,9 @@ class ReplyHelper
     {
         $replyEvent = new ReplyEvent($contact, trim($message));
 
-        $this->eventDispatcher->dispatch(SmsEvents::ON_REPLY, $replyEvent);
+        $this->eventDispatcher->dispatch(TwilioFeedbackEvents::ON_REPLY, $replyEvent);
 
         return $replyEvent->getResponse();
     }
 
-    /**
-     * @param CallbackInterface $handler
-     *
-     * @return Response
-     *
-     * @throws \Exception
-     */
-    private function getDefaultResponse(CallbackInterface $handler)
-    {
-        if ($handler instanceof ResponseInterface) {
-            $response = $handler->getResponse();
-
-            if (!$response instanceof Response) {
-                throw new \Exception('getResponse must return a Symfony\Component\HttpFoundation\Response object');
-            }
-
-            return $response;
-        }
-
-        return new Response();
-    }
 }

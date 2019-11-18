@@ -9,12 +9,12 @@
  * @license     GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 
-namespace MauticPlugin\MauticTwillioFeedbackBundle\Helper;
+namespace MauticPlugin\MauticTwilioFeedbackBundle\Helper;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\DBAL\Connection;
 use Mautic\LeadBundle\Entity\LeadRepository;
-use Mautic\SmsBundle\Exception\NumberNotFoundException;
+use MauticPlugin\MauticTwilioFeedbackBundle\Exception\NumberNotFoundException;
 
 class ContactHelper
 {

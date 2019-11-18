@@ -9,16 +9,16 @@
  * @license     GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 
-namespace MauticPlugin\MauticTwillioFeedbackBundle\Controller;
+namespace MauticPlugin\MauticTwilioFeedbackBundle\Callback;
 
-use Mautic\SmsBundle\Callback\CallbackInterface;
-use Mautic\SmsBundle\Exception\NumberNotFoundException;
-use Mautic\SmsBundle\Helper\ContactHelper;
+use MauticPlugin\MauticTwilioFeedbackBundle\Exception\ConfigurationException;
+use MauticPlugin\MauticTwilioFeedbackBundle\Exception\NumberNotFoundException;
+use MauticPlugin\MauticTwilioFeedbackBundle\Helper\ContactHelper;
+use MauticPlugin\MauticTwilioFeedbackBundle\Integration\Configuration;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Twilio\Exceptions\ConfigurationException;
 
 class TwilioCallback
 {
@@ -61,7 +61,7 @@ class TwilioCallback
      */
     public function getContacts(Request $request)
     {
-        $this->validateRequest($request->request);
+        $this->validateRequest($request);
 
         $number = $request->get('From');
 
@@ -75,7 +75,7 @@ class TwilioCallback
      */
     public function getMessage(Request $request)
     {
-        $this->validateRequest($request->request);
+        $this->validateRequest($request);
 
         return trim($request->get('Body'));
     }
@@ -83,7 +83,7 @@ class TwilioCallback
     /**
      * @param ParameterBag $request
      */
-    private function validateRequest(ParameterBag $request)
+    private function validateRequest(Request $request)
     {
         try {
             $accountSid = $this->configuration->getAccountSid();
@@ -91,7 +91,6 @@ class TwilioCallback
             // Not published or not configured
             throw new NotFoundHttpException();
         }
-
         // Validate this is a request from Twilio
         if ($accountSid !== $request->get('AccountSid')) {
             throw new BadRequestHttpException();

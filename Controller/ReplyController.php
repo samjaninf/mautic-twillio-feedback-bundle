@@ -9,12 +9,10 @@
  * @license     GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 
-namespace MauticPlugin\MauticTwillioFeedbackBundle\Controller;
+namespace MauticPlugin\MauticTwilioFeedbackBundle\Controller;
 
 
-use Mautic\SmsBundle\Callback\HandlerContainer;
-use Mautic\SmsBundle\Exception\CallbackHandlerNotFound;
-use MauticPlugin\MauticTwillioFeedbackBundle\Helper\ReplyHelper;
+use MauticPlugin\MauticTwilioFeedbackBundle\Helper\ReplyHelper;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -47,7 +45,6 @@ class ReplyController extends Controller
     public function callbackAction(Request $request)
     {
         define('MAUTIC_NON_TRACKABLE_REQUEST', 1);
-
         return $this->replyHelper->handleRequest($request);
     }
 }
