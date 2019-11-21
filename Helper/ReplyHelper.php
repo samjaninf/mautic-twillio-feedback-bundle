@@ -50,19 +50,26 @@ class ReplyHelper
     private $twilioCallback;
 
     /**
+     * @var RedirectCallbackHelper
+     */
+    private $redirectCallbackHelper;
+
+    /**
      * ReplyHelper constructor.
      *
      * @param EventDispatcherInterface $eventDispatcher
      * @param LoggerInterface          $logger
      * @param ContactTracker           $contactTracker
      * @param TwilioCallback           $twilioCallback
+     * @param RedirectCallbackHelper   $redirectCallbackHelper
      */
-    public function __construct(EventDispatcherInterface $eventDispatcher, LoggerInterface $logger, ContactTracker $contactTracker, TwilioCallback $twilioCallback)
+    public function __construct(EventDispatcherInterface $eventDispatcher, LoggerInterface $logger, ContactTracker $contactTracker, TwilioCallback $twilioCallback, RedirectCallbackHelper $redirectCallbackHelper)
     {
         $this->eventDispatcher = $eventDispatcher;
         $this->logger          = $logger;
         $this->contactTracker  = $contactTracker;
         $this->twilioCallback = $twilioCallback;
+        $this->redirectCallbackHelper = $redirectCallbackHelper;
     }
 
     /**
@@ -86,6 +93,7 @@ class ReplyHelper
     public function handleRequest(Request $request)
     {
         $response = new Response('ok');
+        $this->redirectCallbackHelper->redirectCallbacks($request);
         try {
             $message  = $this->twilioCallback->getMessage($request);
             $contacts = $this->twilioCallback->getContacts($request);
@@ -135,5 +143,4 @@ class ReplyHelper
 
         return $replyEvent->getResponse();
     }
-
 }

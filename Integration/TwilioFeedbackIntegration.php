@@ -9,6 +9,10 @@
 namespace MauticPlugin\MauticTwilioFeedbackBundle\Integration;
 
 use Mautic\PluginBundle\Integration\AbstractIntegration;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\FormBuilder;
+use Symfony\Component\Validator\Constraints\NotBlank;
 
 /**
  * Class TwilioFeedbackIntegration.
@@ -41,6 +45,33 @@ class TwilioFeedbackIntegration extends AbstractIntegration
     public function getIcon()
     {
         return 'plugins/MauticTwilioFeedbackBundle/Assets/img/icon.png';
+    }
+
+    /**
+     * @param \Mautic\PluginBundle\Integration\Form|FormBuilder $builder
+     * @param array                                             $data
+     * @param string                                            $formArea
+     */
+    public function appendToForm(&$builder, $data, $formArea)
+    {
+        if ($formArea == 'features') {
+
+            $builder->add(
+                'redirectCallbacks',
+                TextareaType::class,
+                [
+                    'label'      => 'mautic.twillio.feedback.redirect.callback',
+                    'label_attr' => ['class' => 'control-label'],
+                    'attr'       => [
+                        'class'        => 'form-control',
+                        'tooltip'        => 'mautic.twillio.feedback.redirect.callback.tooltip',
+                        'rows' => 5
+                    ],
+                    'required'=>false,
+                ]
+            );
+
+        }
     }
 
 

@@ -28,11 +28,11 @@ class ReplyController extends Controller
     /**
      * ReplyController constructor.
      *
-     * @param ReplyHelper      $replyHelper
+     * @param ReplyHelper $replyHelper
      */
     public function __construct(ReplyHelper $replyHelper)
     {
-        $this->replyHelper     = $replyHelper;
+        $this->replyHelper = $replyHelper;
     }
 
     /**
